@@ -1,8 +1,9 @@
-import Vue from 'vue'
-import Router from 'vue-router'
-import Home from './views/Home.vue'
+import Vue from 'vue';
+import Router from 'vue-router';
+import Home from './views/Home.vue';
+import Game from '@/views/Game.vue';
 
-Vue.use(Router)
+Vue.use(Router);
 
 export default new Router({
   mode: 'history',
@@ -14,6 +15,19 @@ export default new Router({
       component: Home
     },
     {
+      path: '/game',
+      name: 'Game',
+      component: Game,
+      props: true,
+      beforeEnter: (to, from, next) => {
+        if (to.params.name) {
+          next();
+        } else {
+          next({name: 'Home'});
+        }
+      }
+    },    
+    {
       path: '/about',
       name: 'about',
       // route level code-splitting
@@ -22,4 +36,4 @@ export default new Router({
       component: () => import(/* webpackChunkName: "about" */ './views/About.vue')
     }
   ]
-})
+});
