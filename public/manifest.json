@@ -5,7 +5,7 @@
   "background_color": "white",
   "display": "standalone",
   "orientation": "portrait",
-  "Scope": "/",
+  "scope": "/",
   "start_url": "./index.html",
   "icons": [
     {

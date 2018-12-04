@@ -1,5 +1,6 @@
 {
   "projects": {
+    "default": "jinx-vue-pwa",
     "development": "jinx-vue-pwa"
   }
 }
