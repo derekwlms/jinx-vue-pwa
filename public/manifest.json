@@ -1,8 +1,8 @@
 {
   "name": "Jinx! - Say the Same Thing",
   "short_name": "Jinx!",
-  "theme_color": "darkblue",
-  "background_color": "white",
+  "theme_color": "#00008b",
+  "background_color": "#ffffff",
   "display": "standalone",
   "orientation": "portrait",
   "scope": "/",

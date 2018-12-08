@@ -27,6 +27,7 @@ Pre-requisites: [git](https://git-scm.com/),  [node.js](https://nodejs.org), and
 
 ## Development
 ```
+npm run server     # run locally
 npm run build      # build for distribution
 npm run test       # run tests
 npm run test:unit  # run unit tests
@@ -44,6 +45,8 @@ See also the [Vue.js Configuration Reference](https://cli.vuejs.org/config/).
  
 ## TODO
 - [ ] Put moment.js on a diet
-- [ ] Add cache headers (firebase.json)
-- [ ] Update PWA icons - 'apple-touch', 'android-chrome', etc
-
+- [ ] Add cache headers ([firebase.json(https://github.com/derekwlms/kudos-ionic-pwa/blob/master/firebase.json)])
+- [ ] Do npm audit cleanup
+- [ ] Add tests
+- [ ] Update cloud function for data cleanup
+- [ ] Host on GitHub Pages 
