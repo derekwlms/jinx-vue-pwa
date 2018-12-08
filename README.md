@@ -11,9 +11,8 @@
 [Say the Same Thing](http://www.shakingearthdigital.com/portfolio/say-the-same-thing/)
 mobile [app](https://www.highroadtouring.com/check-out-ok-gos-new-free-game-app-say-the-same-thing/).
 
-My son was disappointed that the app is no longer available,
-so he asked me to build a replacement.
-Fatherly love and a desire to try some new tech (Vue.js PWAs) led to this.
+The app is no longer available, so this is a "personal tech" replacement,
+and a chance to try some new tech (Vue.js PWAs).
 
 ---
 
@@ -44,8 +43,9 @@ See also the [Vue.js Configuration Reference](https://cli.vuejs.org/config/).
 - Lighthouse PWA report: `firebase deploy && lighthouse https://jinx-vue-pwa.firebaseapp.com --view`
  
 ## TODO
-- [ ] Put moment.js on a diet
-- [ ] Add cache headers ([firebase.json(https://github.com/derekwlms/kudos-ionic-pwa/blob/master/firebase.json)])
+- [ ] Finish 'join game' - get player name and round number, etc
+- [ ] Firestore updates -  collection structure/name, data cleanup, function update
+- [ ] Add cache headers ([firebase.json](https://github.com/derekwlms/kudos-ionic-pwa/blob/master/firebase.json))
 - [ ] Do npm audit cleanup
 - [ ] Add tests
 - [ ] Update cloud function for data cleanup

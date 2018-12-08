@@ -19,7 +19,7 @@
 
     export default {
         name: 'CreateMessage',
-        props: ['guessCount', 'name', 'roundNumber'],
+        props: ['gameId', 'guessCount', 'name', 'roundNumber'],
         data() {
             return {
                 errorText: null,
@@ -31,6 +31,7 @@
             createMessage () {
                 if (this.newMessage) {
                     fb.collection('messages').add({
+                        gameId: this.gameId,
                         guessNumber: ++this.latestGuessNumber,
                         message: this.newMessage,
                         name: this.name,

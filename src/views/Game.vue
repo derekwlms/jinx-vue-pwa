@@ -4,7 +4,7 @@
         <h5>Wins - {{winCount}}, Losses - {{lossCount}}</h5>
         <div class="card">
             <div class="card-action">
-                <CreateMessage :name="name" :guessCount="guessCount" :roundNumber="roundNumber"/>
+                <CreateMessage :gameId="gameId" :name="name" :guessCount="guessCount" :roundNumber="roundNumber"/>
                 <button @click="closeEnough" class="btn game-button" name="closeEnough">Close Enough</button>
                 <button @click="quitGame" class="btn game-button" name="quitGame">Give Up</button>  
             </div>                       
@@ -40,7 +40,6 @@
 <script>
     import CreateMessage from '@/components/CreateMessage';
     import fb from '@/firebase/init';
-    import moment from 'moment';
 
     export default {
         name: 'Game',
@@ -72,7 +71,8 @@
                 this.newGame();
             },
             newGame() {
-                // Firebase lacks delete all - so tag each message with round # and filter
+                this.messages = [];
+                // Firestore lacks delete all, so tag each message with round # and filter
                 this.guessCount = 0;
                 this.roundNumber++;
             }        
@@ -81,19 +81,25 @@
             this.hostPlayerName = this.name;
             this.guestPlayerName = 'TBD';
 
-            let fbMessages = fb.collection('messages').orderBy('guessNumber', 'desc');
+            let fbMessages = fb.collection('messages')
+                .where('gameId', '==', this.gameId)
+                // .where('roundNumber', '==', this.roundNumber)
+                .orderBy('guessNumber', 'desc');
 
             fbMessages.onSnapshot(snapshot => {
                 snapshot.docChanges().forEach(change => {
                     if (change.type == 'added') {
                         let doc = change.doc;
-                        this.messages.unshift({
-                            id: doc.id,
-                            guessNumber: doc.data().guessNumber,
-                            name: doc.data().name,
-                            message: doc.data().message,
-                            timestamp: moment(doc.data().timestamp).format('LTS')
-                        });
+                        if (doc.data().roundNumber == this.roundNumber) {
+                            this.messages.unshift({
+                                id: doc.id,
+                                guessNumber: doc.data().guessNumber,
+                                name: doc.data().name,
+                                message: doc.data().message,
+                                roundNumber: doc.data().roundNumber,
+                                timestamp: doc.data().timestam
+                            });
+                        }
                     }
                 });
             });
