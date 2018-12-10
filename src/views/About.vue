@@ -13,6 +13,6 @@
     <p>
       <a href="https://github.com/derekwlms/jinx-vue-pwa" target="__blank">GitHub</a>
     </p>
-    <p>v0.0.5 - 8 December 2018</p>
+    <p>v0.0.6 - 10 December 2018</p>
   </div>
 </template>

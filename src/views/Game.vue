@@ -43,7 +43,7 @@
 
     export default {
         name: 'Game',
-        props: ['name', 'gameId'],
+        props: ['game', 'name', 'gameId'],
         components: {
             CreateMessage
         },
@@ -78,15 +78,23 @@
             }        
         },
         created() {
-            this.hostPlayerName = this.name;
-            this.guestPlayerName = 'TBD';
+            // TODO bind to game directly, make game an object
+            // TODO clean up 'name', .name, 'gameId', etc
+            this.hostPlayerName = this.game.hostPlayerName;
+            this.guestPlayerName = this.game.guestPlayerName;
+            // TODO transitional:
+            this.gameId = this.game.gameId;
+            this.name = this.game.hostPlayerName;
 
-            let fbMessages = fb.collection('messages')
+            // TODO update firestore access - guesses under game
+            // let gameRef = fb.collection('jinxGames');
+
+            let messagesRef = fb.collection('messages')
                 .where('gameId', '==', this.gameId)
                 // .where('roundNumber', '==', this.roundNumber)
                 .orderBy('guessNumber', 'desc');
 
-            fbMessages.onSnapshot(snapshot => {
+            messagesRef.onSnapshot(snapshot => {
                 snapshot.docChanges().forEach(change => {
                     if (change.type == 'added') {
                         let doc = change.doc;

@@ -12,7 +12,7 @@
 mobile [app](https://www.highroadtouring.com/check-out-ok-gos-new-free-game-app-say-the-same-thing/).
 
 The app is no longer available, so this is a "personal tech" replacement,
-and a chance to try some new tech (Vue.js PWAs).
+and a chance to try a Progressive Web App (PWA) with Vue.js.
 
 ---
 

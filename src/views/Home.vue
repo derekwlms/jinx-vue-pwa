@@ -1,9 +1,9 @@
 <template>
   <div class="container">
-    <div class="card login">
+    <div class="card enter-game">
       <div class="card-body">
         <h2 class="card-title text-center">Jinx!</h2>
-        <form @submit.prevent="login" class="text-center">
+        <form @submit.prevent="enterGame" class="text-center">
           <div class="form-group">
             <input type="text" class="form-control" placeholder="Please enter your name ..." name="name" v-model="name">
             <p v-if="nameMessage" class="text-danger">{{ nameMessage }}</p>            
@@ -19,7 +19,7 @@
 </template>
 
 <script>
-import { generateGameId } from '../utils';
+import { enterGame, generateGameId } from '../utils';
 
 export default {
   name: "home",
@@ -32,40 +32,46 @@ export default {
     }
   },
   methods: {
-    login() {
-      if (!this.name) {
+    enterGame() {
+      var playerName = (this.name || '').trim();
+      if (!playerName) {
         return this.nameMessage = 'Please enter your name';
       }
       this.nameMessage = null;
-      if (!this.gameId) {
+      var gameKey = (this.gameId || '').trim().toUpperCase();
+      if (!gameKey) {
         this.$swal({
-          title: 'New Game',
-          text: 'Start a New Game?',
-          type: 'question',
-          showCancelButton: true,
-          confirmButtonColor: '#3085d6',
-          cancelButtonColor: '#d33',
-          confirmButtonText: 'Yes',
-          cancelButtonText: 'No'
+          title: 'New Game',              text: 'Start a New Game?',
+          type: 'question',               showCancelButton: true,
+          confirmButtonColor: '#3085d6',  cancelButtonColor: '#d33',
+          confirmButtonText: 'Yes',       cancelButtonText: 'No'
         }).then((result) => {
           if (result.value) {
-            var newGameId = generateGameId();
-            // Later validate that the gameId is unique
-            this.$router.push({name: 'Game', params: {name: this.name, gameId: newGameId}});
+            this.startGame(generateGameId(), playerName);
           } else {
             return this.gameIdMessage = 'Enter a game ID or start a new game';
           }
         });       
       } else {
-        this.$router.push({name: 'Game', params: {name: this.name, gameId: this.gameId}});
+        this.gameIdMessage = null;
+        this.startGame(gameKey, playerName);
       }
+    },
+    startGame(gameKey, playerName) {
+      enterGame(gameKey, playerName)
+        .then((game) => {
+          this.$router.push({name: 'Game', params: { game: game }});
+        })
+        .catch((error) => {
+          this.$swal('Start Game', error || 'Error starting game', 'error');
+        });
     }
   }
 }
 </script>
 
 <style>
-.login{
+.enter-game {
   max-width: 450px;
   margin-top: 50px;
   display: block;
