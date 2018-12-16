@@ -19,7 +19,7 @@
 </template>
 
 <script>
-import { enterGame, generateGameId } from '../utils';
+import { enterGame } from '../utils';
 
 export default {
   name: "home",
@@ -47,7 +47,7 @@ export default {
           confirmButtonText: 'Yes',       cancelButtonText: 'No'
         }).then((result) => {
           if (result.value) {
-            this.startGame(generateGameId(), playerName);
+            this.startGame(null, playerName);
           } else {
             return this.gameIdMessage = 'Enter a game ID or start a new game';
           }

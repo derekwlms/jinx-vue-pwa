@@ -1,9 +1,9 @@
 <template>
     <div class="container" style="margin-top: 14px">
-        <form @submit.prevent="createMessage">
+        <form @submit.prevent="guess">
             <div class="form-group">
                 <div class="input-group">
-                    <input type="text" name="message" class="form-control" placeholder="Enter a word ..." v-model="newMessage">
+                    <input type="text" name="guess" class="form-control" placeholder="Enter a word ..." v-model="newWord">
                     <span class="input-group-btn">
                         <button class="btn btn-primary game-button" type="submit" name="action">Guess</button>
                     </span>
@@ -15,33 +15,34 @@
 </template>
 
 <script>
-    import fb from '@/firebase/init';
+    import { addGuess } from '../utils';
 
     export default {
-        name: 'CreateMessage',
-        props: ['gameId', 'guessCount', 'name', 'roundNumber'],
+        name: 'Guess',
+        props: ['gameId', 'isHostPlayer', 'guessCount', 'roundNumber'],
         data() {
             return {
                 errorText: null,
                 latestGuessNumber: 0,
-                newMessage: null
+                newWord: null
             }
         },
         methods: {
-            createMessage () {
-                if (this.newMessage) {
-                    fb.collection('messages').add({
+            guess() {
+                if (this.newWord) {
+                    var guess = {
                         gameId: this.gameId,
                         guessNumber: ++this.latestGuessNumber,
-                        message: this.newMessage,
-                        name: this.name,
                         roundNumber: this.roundNumber,
                         timestamp: Date.now()
-                    }).catch(err => {
-                        console.log(err);
-                    });
-                    this.newMessage = null;
-                    this.errorText = null;
+                    };
+                    if (this.isHostPlayer) {
+                        guess.hostPlayerWord = this.newWord;
+                    } else {
+                        guess.guestPlayerWord = this.newWord;
+                    }
+                    addGuess(guess);
+                    this.newWord = '';
                 } else {
                     this.errorText = 'Enter a word';
                 }

@@ -4,15 +4,15 @@
         <h5>Wins - {{winCount}}, Losses - {{lossCount}}</h5>
         <div class="card">
             <div class="card-action">
-                <CreateMessage :gameId="gameId" :name="name" :guessCount="guessCount" :roundNumber="roundNumber"/>
+                <Guess :gameId="gameId" :isHostPlayer="hostPlayerName == playerName" :guessCount="guessCount" :roundNumber="roundNumber"/>
                 <button @click="closeEnough" class="btn game-button" name="closeEnough">Close Enough</button>
                 <button @click="quitGame" class="btn game-button" name="quitGame">Give Up</button>  
             </div>                       
             <div class="card-body">
-                <p class="nomessages text-secondary" v-if="messages.length == 0">
+                <p class="text-secondary" v-if="guesses.length == 0">
                     [Type your first word]
                 </p>
-                <table class="messages table" v-chat-scroll="{always: false, smooth: true}">
+                <table class="guesses table">
                     <thead>
                         <tr>
                             <th>{{hostPlayerName}}</th>
@@ -21,12 +21,12 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="message in messages" :key="message.id">
-                            <td class="text-info">{{ message.message }}</td>
-                            <td class="text-info">{{ message.guessNumber }}</td>
-                            <td class="text-info">{{ message.message }}
+                        <tr v-for="guess in guesses" :key="guess.id">
+                            <td class="text-info">{{ guess.hostPlayerWord }}</td>
+                            <td class="text-info">{{ guess.guessNumber }}</td>
+                            <td class="text-info">{{ guess.guestPlayerWord }}
                                 <span class="d-none">
-                                    {{message.timestamp}}, {{message.roundNumber}}, {{message.name}} 
+                                    {{guess.timestamp}}, {{guess.roundNumber}} 
                                 </span>
                             </td>
                         </tr>
@@ -38,25 +38,25 @@
 </template>
 
 <script>
-    import CreateMessage from '@/components/CreateMessage';
-    import fb from '@/firebase/init';
+    import Guess from '@/components/Guess';
+    import { startPlaying } from '../utils';
 
     export default {
         name: 'Game',
-        props: ['game', 'name', 'gameId'],
+        props: ['game'],
         components: {
-            CreateMessage
+            Guess
         },
         data() {
             return {
                 hostPlayerName: null,
                 guestPlayerName: null,
+                playerName: null,
                 winCount: 0,
                 lossCount: 0,
                 roundNumber: 0,
                 guessCount: 0,
-                rounds: [],
-                messages: []
+                guesses: []
             }
         },
         methods: {
@@ -71,45 +71,31 @@
                 this.newGame();
             },
             newGame() {
-                this.messages = [];
-                // Firestore lacks delete all, so tag each message with round # and filter
+                this.guesses = [];
+                // Firestore lacks delete all, so tag each guess with round # and filter
                 this.guessCount = 0;
                 this.roundNumber++;
             }        
         },
         created() {
             // TODO bind to game directly, make game an object
-            // TODO clean up 'name', .name, 'gameId', etc
             this.hostPlayerName = this.game.hostPlayerName;
             this.guestPlayerName = this.game.guestPlayerName;
-            // TODO transitional:
+            this.playerName = this.game.playerName;
             this.gameId = this.game.gameId;
-            this.name = this.game.hostPlayerName;
-
-            // TODO update firestore access - guesses under game
-            // let gameRef = fb.collection('jinxGames');
-
-            let messagesRef = fb.collection('messages')
-                .where('gameId', '==', this.gameId)
-                // .where('roundNumber', '==', this.roundNumber)
-                .orderBy('guessNumber', 'desc');
-
-            messagesRef.onSnapshot(snapshot => {
-                snapshot.docChanges().forEach(change => {
-                    if (change.type == 'added') {
-                        let doc = change.doc;
-                        if (doc.data().roundNumber == this.roundNumber) {
-                            this.messages.unshift({
-                                id: doc.id,
-                                guessNumber: doc.data().guessNumber,
-                                name: doc.data().name,
-                                message: doc.data().message,
-                                roundNumber: doc.data().roundNumber,
-                                timestamp: doc.data().timestam
-                            });
-                        }
-                    }
-                });
+            let self = this;
+            startPlaying(this.gameId, doc => {
+                if (doc.data().roundNumber == self.roundNumber) {
+                    self.guesses.unshift({
+                        id: doc.id,
+                        guessNumber: doc.data().guessNumber,
+                        message: doc.data().hostPlayerWord,
+                        hostPlayerWord: doc.data().hostPlayerWord,
+                        guestPlayerWord: doc.data().guestPlayerWord,
+                        roundNumber: doc.data().roundNumber,
+                        timestamp: doc.data().timestamp
+                    });
+                }
             });
         }
     }
@@ -140,7 +126,7 @@
   margin-right: 4px;
 }
 
-.messages{
+.guesses{
     max-height: 300px;
     overflow: auto;
 }
