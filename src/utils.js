@@ -42,26 +42,32 @@ export function enterGame(existingGameId, playerId) {
     });
 }
 
-export function startPlaying(gameId, listener) {
+export function startPlaying(gameId, gameListener, guessesListener) {
   let docKey = 'game-' + gameId;
-  let guessesRef = fb.collection('jinxGames').doc(docKey)
-                      .collection('guesses').orderBy('guessNumber', 'desc');
+  let gamesRef = fb.collection('jinxGames').doc(docKey);
+  gamesRef.onSnapshot(doc => {
+    // TODO Finish
+    gameListener(doc);
+  });
+  // Avoid nested collections for now - not fully baked in firestore (no cascade deletes, etc)
+  // let guessesRef = fb.collection('jinxGames').doc(docKey)
+  //                     .collection('guesses').orderBy('guessNumber', 'desc');  
+  let guessesRef = fb.collection('jinxGuesses').where('gameId', '==', gameId).orderBy('guessNumber', 'desc');
   guessesRef.onSnapshot(snapshot => {
     snapshot.docChanges().forEach(change => {
         if (change.type == 'added') {
           // TODO don't display the guess until both sides have entered words
           // TODO show a message (or change the quote direction) when one side has guessed
-          listener(change.doc);
+          guessesListener(change.doc);
         }
         // TODO Also monitor the other player's changes to the same guess
     });
   });  
-  // TODO Watch for updates to the shared game - winCount, lossCount, etc
 }
 
 export function addGuess(guess) {
-  let docKey = 'game-' + guess.gameId;
-  let guessesRef = fb.collection('jinxGames').doc(docKey).collection('guesses');
+  // let docKey = 'game-' + guess.gameId;
+  let guessesRef = fb.collection('jinxGuesses') // .doc(docKey).collection('guesses');
   // TODO Don't just add - update an existing guess for the second player
   guessesRef.add(
       guess
@@ -69,6 +75,10 @@ export function addGuess(guess) {
       console.log(err);
   });
 
+}
+
+export function updateGame(game) {
+  fb.collection('jinxGames').doc('game-' + game.gameId).set(game);
 }
 
 function generateGameId() {

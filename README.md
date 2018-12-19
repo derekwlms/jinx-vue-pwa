@@ -11,7 +11,8 @@
 [Say the Same Thing](http://www.shakingearthdigital.com/portfolio/say-the-same-thing/)
 mobile [app](https://www.highroadtouring.com/check-out-ok-gos-new-free-game-app-say-the-same-thing/).
 
-The app is no longer available, so this is a "personal tech" replacement,
+The [OK Go](https://okgo.net/2013/05/09/say-the-same-thing/) app is no longer available, 
+so this is a "personal tech" replacement,
 and a chance to try a Progressive Web App (PWA) with Vue.js.
 
 ---

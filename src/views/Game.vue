@@ -1,7 +1,7 @@
 <template>
     <div class="chat container">
         <h2 class="text-primary text-center">Jinx! - {{gameId}}</h2>
-        <h5>Wins - {{winCount}}, Losses - {{lossCount}}</h5>
+        <h5>Wins - {{winCount}}, Losses - {{lossCount}} - {{game2.test1}}</h5>
         <div class="card">
             <div class="card-action">
                 <Guess :gameId="gameId" :isHostPlayer="hostPlayerName == playerName" :guessCount="guessCount" :roundNumber="roundNumber"/>
@@ -39,7 +39,7 @@
 
 <script>
     import Guess from '@/components/Guess';
-    import { startPlaying } from '../utils';
+    import { startPlaying, updateGame } from '../utils';
 
     export default {
         name: 'Game',
@@ -49,6 +49,9 @@
         },
         data() {
             return {
+                game2: {
+                    test1: null
+                },
                 hostPlayerName: null,
                 guestPlayerName: null,
                 playerName: null,
@@ -63,11 +66,16 @@
             closeEnough() {
                 this.$swal('OK, sure, you win!');
                 this.winCount++;
+                // TODO Finish game updates, sync from both sides
+                this.game.winCount++;
                 this.newGame();
+                updateGame(this.game);
             },
             quitGame() {
                 this.$swal('Better luck next time');
                 this.lossCount++;
+                // TODO test:
+                this.game2.test1 = 'testing';
                 this.newGame();
             },
             newGame() {
@@ -84,19 +92,28 @@
             this.playerName = this.game.playerName;
             this.gameId = this.game.gameId;
             let self = this;
-            startPlaying(this.gameId, doc => {
-                if (doc.data().roundNumber == self.roundNumber) {
-                    self.guesses.unshift({
-                        id: doc.id,
-                        guessNumber: doc.data().guessNumber,
-                        message: doc.data().hostPlayerWord,
-                        hostPlayerWord: doc.data().hostPlayerWord,
-                        guestPlayerWord: doc.data().guestPlayerWord,
-                        roundNumber: doc.data().roundNumber,
-                        timestamp: doc.data().timestamp
-                    });
+            startPlaying(this.gameId, 
+                gameDoc => {
+                    self.hostPlayerName = gameDoc.data().hostPlayerName;
+                    self.guestPlayerName = gameDoc.data().guestPlayerName;
+                    self.winCount = gameDoc.data().winCount;
+                    self.lossCount = gameDoc.data().lossCount;
+                    self.roundNumber = gameDoc.data().roundNumber;
+                },            
+                guessesDoc => {
+                    if (guessesDoc.data().roundNumber == self.roundNumber) {
+                        self.guesses.unshift({
+                            id: guessesDoc.id,
+                            guessNumber: guessesDoc.data().guessNumber,
+                            message: guessesDoc.data().hostPlayerWord,
+                            hostPlayerWord: guessesDoc.data().hostPlayerWord,
+                            guestPlayerWord: guessesDoc.data().guestPlayerWord,
+                            roundNumber: guessesDoc.data().roundNumber,
+                            timestamp: guessesDoc.data().timestamp
+                        });
+                    }
                 }
-            });
+            );
         }
     }
 </script>
