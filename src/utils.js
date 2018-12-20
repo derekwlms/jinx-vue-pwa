@@ -1,4 +1,5 @@
 import fb from '@/firebase/init';
+import extend from 'lodash/extend';
 
 export function enterGame(existingGameId, playerId) {
   let gameId = existingGameId || generateGameId();
@@ -26,10 +27,7 @@ export function enterGame(existingGameId, playerId) {
         if (data.guestPlayerName && data.guestPlayerName != playerId && data.hostPlayerName != playerId) {
           throw 'This game (' + gameId + ') is already taken by other players';
         }
-        freshGame.hostPlayerName = data.hostPlayerName;
-        freshGame.winCount = data.winCount;
-        freshGame.lossCount = data.lossCount;
-        freshGame.roundNumber = data.roundNumber;
+        extend(freshGame, data);
         freshGame.guestPlayerName = playerId;
       } else {
         freshGame.hostPlayerName = playerId;
@@ -46,7 +44,6 @@ export function startPlaying(gameId, gameListener, guessesListener) {
   let docKey = 'game-' + gameId;
   let gamesRef = fb.collection('jinxGames').doc(docKey);
   gamesRef.onSnapshot(doc => {
-    // TODO Finish
     gameListener(doc);
   });
   // Avoid nested collections for now - not fully baked in firestore (no cascade deletes, etc)
@@ -67,7 +64,7 @@ export function startPlaying(gameId, gameListener, guessesListener) {
 
 export function addGuess(guess) {
   // let docKey = 'game-' + guess.gameId;
-  let guessesRef = fb.collection('jinxGuesses') // .doc(docKey).collection('guesses');
+  let guessesRef = fb.collection('jinxGuesses'); // .doc(docKey).collection('guesses');
   // TODO Don't just add - update an existing guess for the second player
   guessesRef.add(
       guess

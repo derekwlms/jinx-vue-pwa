@@ -1,10 +1,10 @@
 <template>
     <div class="chat container">
-        <h2 class="text-primary text-center">Jinx! - {{gameId}}</h2>
-        <h5>Wins - {{winCount}}, Losses - {{lossCount}} - {{game2.test1}}</h5>
+        <h2 class="text-primary text-center">Jinx! - {{game.gameId}}</h2>
+        <h5>Wins - {{game.winCount}}, Losses - {{game.lossCount}}</h5>
         <div class="card">
             <div class="card-action">
-                <Guess :gameId="gameId" :isHostPlayer="hostPlayerName == playerName" :guessCount="guessCount" :roundNumber="roundNumber"/>
+                <Guess :gameId="game.gameId" :isHostPlayer="isHostPlayer" :guessCount="game.guessCount" :roundNumber="game.roundNumber"/>
                 <button @click="closeEnough" class="btn game-button" name="closeEnough">Close Enough</button>
                 <button @click="quitGame" class="btn game-button" name="quitGame">Give Up</button>  
             </div>                       
@@ -15,9 +15,9 @@
                 <table class="guesses table">
                     <thead>
                         <tr>
-                            <th>{{hostPlayerName}}</th>
+                            <th>{{game.hostPlayerName}}</th>
                             <th></th>
-                            <th>{{guestPlayerName}}</th>
+                            <th>{{game.guestPlayerName}}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -40,77 +40,62 @@
 <script>
     import Guess from '@/components/Guess';
     import { startPlaying, updateGame } from '../utils';
+    import extend from 'lodash/extend';
 
     export default {
         name: 'Game',
-        props: ['game'],
+        props: ['gameParameters'],
         components: {
             Guess
         },
         data() {
             return {
-                game2: {
-                    test1: null
+                game: {
+                    gameId: null,
+                    hostPlayerName: null,
+                    guestPlayerName: null,
+                    playerName: null,
+                    winCount: 0,
+                    lossCount: 0,
+                    roundNumber: 0,
+                    guessCount: 0,
                 },
-                hostPlayerName: null,
-                guestPlayerName: null,
-                playerName: null,
-                winCount: 0,
-                lossCount: 0,
-                roundNumber: 0,
-                guessCount: 0,
-                guesses: []
+                guesses: [],
+                isHostPlayer: false
             }
         },
         methods: {
             closeEnough() {
                 this.$swal('OK, sure, you win!');
-                this.winCount++;
-                // TODO Finish game updates, sync from both sides
                 this.game.winCount++;
                 this.newGame();
                 updateGame(this.game);
             },
             quitGame() {
                 this.$swal('Better luck next time');
-                this.lossCount++;
-                // TODO test:
-                this.game2.test1 = 'testing';
+                this.game.lossCount++;
                 this.newGame();
+                updateGame(this.game);
             },
             newGame() {
                 this.guesses = [];
                 // Firestore lacks delete all, so tag each guess with round # and filter
-                this.guessCount = 0;
-                this.roundNumber++;
+                this.game.guessCount = 0;
+                this.game.roundNumber++;
             }        
         },
         created() {
-            // TODO bind to game directly, make game an object
-            this.hostPlayerName = this.game.hostPlayerName;
-            this.guestPlayerName = this.game.guestPlayerName;
-            this.playerName = this.game.playerName;
-            this.gameId = this.game.gameId;
+            extend(this.game, this.gameParameters);
+            this.isHostPlayer = this.game.hostPlayerName == this.game.playerName;
             let self = this;
-            startPlaying(this.gameId, 
+            startPlaying(this.game.gameId, 
                 gameDoc => {
-                    self.hostPlayerName = gameDoc.data().hostPlayerName;
-                    self.guestPlayerName = gameDoc.data().guestPlayerName;
-                    self.winCount = gameDoc.data().winCount;
-                    self.lossCount = gameDoc.data().lossCount;
-                    self.roundNumber = gameDoc.data().roundNumber;
+                    extend(self.game, gameDoc.data());
                 },            
                 guessesDoc => {
-                    if (guessesDoc.data().roundNumber == self.roundNumber) {
-                        self.guesses.unshift({
-                            id: guessesDoc.id,
-                            guessNumber: guessesDoc.data().guessNumber,
-                            message: guessesDoc.data().hostPlayerWord,
-                            hostPlayerWord: guessesDoc.data().hostPlayerWord,
-                            guestPlayerWord: guessesDoc.data().guestPlayerWord,
-                            roundNumber: guessesDoc.data().roundNumber,
-                            timestamp: guessesDoc.data().timestamp
-                        });
+                    if (guessesDoc.data().roundNumber == self.game.roundNumber) {
+                        // TODO update existing guess (both sides), add scrolling
+                        self.guesses.unshift(guessesDoc.data());
                     }
                 }
             );
