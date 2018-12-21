@@ -15,33 +15,19 @@
 </template>
 
 <script>
-    import { addGuess } from '../utils';
-
     export default {
         name: 'Guess',
-        props: ['gameId', 'isHostPlayer', 'guessCount', 'roundNumber'],
         data() {
             return {
                 errorText: null,
-                latestGuessNumber: 0,
                 newWord: null
             }
         },
         methods: {
             guess() {
-                if (this.newWord) {
-                    var guess = {
-                        gameId: this.gameId,
-                        guessNumber: ++this.latestGuessNumber,
-                        roundNumber: this.roundNumber,
-                        timestamp: Date.now()
-                    };
-                    if (this.isHostPlayer) {
-                        guess.hostPlayerWord = this.newWord;
-                    } else {
-                        guess.guestPlayerWord = this.newWord;
-                    }
-                    addGuess(guess);
+                const trimmedWord = this.newWord.trim();
+                if (trimmedWord) {
+                    this.$emit('newGuess', trimmedWord);
                     this.newWord = '';
                 } else {
                     this.errorText = 'Enter a word';

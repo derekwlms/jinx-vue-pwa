@@ -44,12 +44,10 @@ See also the [Vue.js Configuration Reference](https://cli.vuejs.org/config/).
 - Lighthouse PWA report: `firebase deploy && lighthouse https://jinx-vue-pwa.firebaseapp.com --view`
  
 ## TODO
-- [ ] Finish 'join game' - get player name and round number, etc
-- [ ] Firestore updates -  collection structure/name, data cleanup, function update
 - [ ] Service worker - update app
-- [ ] Add cache headers ([firebase.json](https://github.com/derekwlms/kudos-ionic-pwa/blob/master/firebase.json))
+- [ ] Add cache headers? ([firebase.json](https://github.com/derekwlms/kudos-ionic-pwa/blob/master/firebase.json))
 - [ ] Do npm audit cleanup
 - [ ] Add tests
-- [ ] Update cloud function for data cleanup
+- [ ] Security, player validations
 - [ ] Host on GitHub Pages 
 - [ ] Travis CI or Circle CI

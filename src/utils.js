@@ -7,11 +7,9 @@ export function enterGame(existingGameId, playerId) {
     gameId: gameId,
     hostPlayerName: '',
     guestPlayerName: '',
-    playerName: '',
     winCount: 0,
     lossCount: 0,
     roundNumber: 0,
-    guessCount: 0,
     timestamp: Date.now()      
   }  
   let docKey = 'game-' + gameId;
@@ -28,11 +26,12 @@ export function enterGame(existingGameId, playerId) {
           throw 'This game (' + gameId + ') is already taken by other players';
         }
         extend(freshGame, data);
-        freshGame.guestPlayerName = playerId;
+        if (data.hostPlayerName !== playerId) {  // Host can re-join existing game
+          freshGame.guestPlayerName = playerId;
+        }
       } else {
         freshGame.hostPlayerName = playerId;
       }
-      freshGame.playerName = playerId;
     })
     .then(() => {
       gameRef.set(freshGame);
@@ -44,7 +43,7 @@ export function startPlaying(gameId, gameListener, guessesListener) {
   let docKey = 'game-' + gameId;
   let gamesRef = fb.collection('jinxGames').doc(docKey);
   gamesRef.onSnapshot(doc => {
-    gameListener(doc);
+    gameListener(doc.data());
   });
   // Avoid nested collections for now - not fully baked in firestore (no cascade deletes, etc)
   // let guessesRef = fb.collection('jinxGames').doc(docKey)
@@ -53,25 +52,24 @@ export function startPlaying(gameId, gameListener, guessesListener) {
   guessesRef.onSnapshot(snapshot => {
     snapshot.docChanges().forEach(change => {
         if (change.type == 'added') {
+          // TODO Probably don't need a collection, just store the latest guess in the game
           // TODO don't display the guess until both sides have entered words
           // TODO show a message (or change the quote direction) when one side has guessed
-          guessesListener(change.doc);
+          guessesListener(change.doc.data());
         }
         // TODO Also monitor the other player's changes to the same guess
     });
   });  
 }
 
-export function addGuess(guess) {
-  // let docKey = 'game-' + guess.gameId;
-  let guessesRef = fb.collection('jinxGuesses'); // .doc(docKey).collection('guesses');
-  // TODO Don't just add - update an existing guess for the second player
-  guessesRef.add(
-      guess
-  ).catch(err => {
-      console.log(err);
-  });
-
+export function shareGuess(guess) {
+  // TODO just store the latest guess in the game
+  if (guess.guestPlayerWord && guess.hostPlayerWord) {
+    // TODO update or remove initial partial guess
+    fb.collection('jinxGuesses').add(guess);
+  } else {
+    fb.collection('jinxGuesses').add(guess)
+  }
 }
 
 export function updateGame(game) {

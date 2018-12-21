@@ -60,7 +60,7 @@ export default {
     startGame(gameKey, playerName) {
       enterGame(gameKey, playerName)
         .then((game) => {
-          this.$router.push({name: 'Game', params: { gameParameters: game }});
+          this.$router.push({name: 'Game', params: { gameParameters: game, playerName: playerName }});
         })
         .catch((error) => {
           this.$swal('Start Game', ('' + error) || 'Error starting game', 'error');

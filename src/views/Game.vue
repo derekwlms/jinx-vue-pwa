@@ -4,7 +4,7 @@
         <h5>Wins - {{game.winCount}}, Losses - {{game.lossCount}}</h5>
         <div class="card">
             <div class="card-action">
-                <Guess :gameId="game.gameId" :isHostPlayer="isHostPlayer" :guessCount="game.guessCount" :roundNumber="game.roundNumber"/>
+                <Guess @newGuess="guess"/>
                 <button @click="closeEnough" class="btn game-button" name="closeEnough">Close Enough</button>
                 <button @click="quitGame" class="btn game-button" name="quitGame">Give Up</button>  
             </div>                       
@@ -39,12 +39,12 @@
 
 <script>
     import Guess from '@/components/Guess';
-    import { startPlaying, updateGame } from '../utils';
+    import { shareGuess, startPlaying, updateGame } from '../utils';
     import extend from 'lodash/extend';
 
     export default {
         name: 'Game',
-        props: ['gameParameters'],
+        props: ['gameParameters', 'playerName'],
         components: {
             Guess
         },
@@ -54,11 +54,9 @@
                     gameId: null,
                     hostPlayerName: null,
                     guestPlayerName: null,
-                    playerName: null,
                     winCount: 0,
                     lossCount: 0,
-                    roundNumber: 0,
-                    guessCount: 0,
+                    roundNumber: 0
                 },
                 guesses: [],
                 isHostPlayer: false
@@ -80,22 +78,47 @@
             newGame() {
                 this.guesses = [];
                 // Firestore lacks delete all, so tag each guess with round # and filter
-                this.game.guessCount = 0;
                 this.game.roundNumber++;
-            }        
+            },
+            guess(newWord) {
+                let initialGuess = this.guesses[0];
+                if (initialGuess && initialGuess.guestPlayerWord && initialGuess.hostPlayerWord) {
+                    initialGuess = null;
+                }
+                let guess = {
+                    gameId: this.game.gameId,
+                    guessNumber: this.guesses.length,
+                    roundNumber: this.game.roundNumber,
+                    timestamp: Date.now()
+                };
+                if (this.isHostPlayer) {
+                    guess.hostPlayerWord = newWord;
+                    guess.guestPlayerWord = initialGuess ? initialGuess.guestPlayerWord : null;
+                } else {
+                    guess.guestPlayerWord = newWord;
+                    guess.hostPlayerWord = initialGuess ? initialGuess.hostPlayerWord : null;
+                }
+                shareGuess(guess);
+            }       
         },
         created() {
             extend(this.game, this.gameParameters);
-            this.isHostPlayer = this.game.hostPlayerName == this.game.playerName;
+            this.isHostPlayer = this.game.hostPlayerName == this.playerName;
             let self = this;
             startPlaying(this.game.gameId, 
-                gameDoc => {
-                    extend(self.game, gameDoc.data());
+                game => {
+                    extend(self.game, game);
                 },            
-                guessesDoc => {
-                    if (guessesDoc.data().roundNumber == self.game.roundNumber) {
+                guess => {
+                    if (guess.roundNumber == self.game.roundNumber) {
                         // TODO update existing guess (both sides), add scrolling
-                        self.guesses.unshift(guessesDoc.data());
+                        if (guess.guestPlayerWord && guess.hostPlayerWord) {
+                            self.guesses.splice(0, 1);
+                        }
+                        if (guess.hostPlayerWord && guess.hostPlayerWord == guess.guestPlayerWord) {
+                            throw 'You win!';
+                        }
+                        self.guesses.unshift(guess);
                     }
                 }
             );
