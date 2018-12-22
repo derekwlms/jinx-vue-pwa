@@ -19,6 +19,11 @@
                             <th></th>
                             <th>{{game.guestPlayerName}}</th>
                         </tr>
+                        <tr>
+                            <th><em>{{hostMessage}}</em></th>
+                            <th></th>
+                            <th><em>{{guestMessage}}</em></th>
+                        </tr>
                     </thead>
                     <tbody>
                         <tr v-for="guess in guesses" :key="guess.id">
@@ -26,7 +31,7 @@
                             <td class="text-info">{{ guess.guessNumber }}</td>
                             <td class="text-info">{{ guess.guestPlayerWord }}
                                 <span class="d-none">
-                                    {{guess.timestamp}}, {{guess.roundNumber}} 
+                                    {{guess.timestamp}}
                                 </span>
                             </td>
                         </tr>
@@ -39,7 +44,7 @@
 
 <script>
     import Guess from '@/components/Guess';
-    import { shareGuess, startPlaying, updateGame } from '../utils';
+    import { startPlaying, updateGame } from '../utils';
     import extend from 'lodash/extend';
 
     export default {
@@ -56,10 +61,16 @@
                     guestPlayerName: null,
                     winCount: 0,
                     lossCount: 0,
-                    roundNumber: 0
+                    hostPlayerWord: '',
+                    guestPlayerWord: '',
+                    hostGuessCount: 0,
+                    guestGuessCount: 0,
+                    timestamp: null
                 },
                 guesses: [],
-                isHostPlayer: false
+                guestMessage: '',
+                hostMessage: '',
+                isHostPlayer: false,
             }
         },
         methods: {
@@ -77,28 +88,26 @@
             },
             newGame() {
                 this.guesses = [];
-                // Firestore lacks delete all, so tag each guess with round # and filter
-                this.game.roundNumber++;
+                extend(this.game, {
+                    hostPlayerWord: '',
+                    guestPlayerWord: '',
+                    hostGuessCount: 0,
+                    guestGuessCount: 0,
+                    timestamp: Date.now()
+                });
             },
             guess(newWord) {
-                let initialGuess = this.guesses[0];
-                if (initialGuess && initialGuess.guestPlayerWord && initialGuess.hostPlayerWord) {
-                    initialGuess = null;
-                }
-                let guess = {
-                    gameId: this.game.gameId,
-                    guessNumber: this.guesses.length,
-                    roundNumber: this.game.roundNumber,
-                    timestamp: Date.now()
-                };
                 if (this.isHostPlayer) {
-                    guess.hostPlayerWord = newWord;
-                    guess.guestPlayerWord = initialGuess ? initialGuess.guestPlayerWord : null;
+                    this.hostMessage = newWord;
+                    this.game.hostPlayerWord = newWord;
+                    this.game.hostGuessCount++;
                 } else {
-                    guess.guestPlayerWord = newWord;
-                    guess.hostPlayerWord = initialGuess ? initialGuess.hostPlayerWord : null;
+                    this.guestMessage = newWord;
+                    this.game.guestPlayerWord = newWord;
+                    this.game.guestGuessCount++;
                 }
-                shareGuess(guess);
+                this.game.timestamp = Date.now();
+                updateGame(this.game);
             }       
         },
         created() {
@@ -107,19 +116,30 @@
             let self = this;
             startPlaying(this.game.gameId, 
                 game => {
-                    extend(self.game, game);
-                },            
-                guess => {
-                    if (guess.roundNumber == self.game.roundNumber) {
-                        // TODO update existing guess (both sides), add scrolling
-                        if (guess.guestPlayerWord && guess.hostPlayerWord) {
-                            self.guesses.splice(0, 1);
+                    if (game.hostGuessCount == game.guestGuessCount) {
+                        let guess = {
+                            guestPlayerWord: game.guestPlayerWord,
+                            hostPlayerWord: game.hostPlayerWord,
+                            guessNumber: game.hostGuessCount,
+                            timestamp: game.timestamp
                         }
                         if (guess.hostPlayerWord && guess.hostPlayerWord == guess.guestPlayerWord) {
-                            throw 'You win!';
+                            this.$swal('You win!');
+                            this.game.winCount++;
+                            // TODO Update game (outside of this handler) so that both sides see it
+                            // this.newGame();
+                            return;
                         }
-                        self.guesses.unshift(guess);
+                        if (game.hostGuessCount > 0) {
+                            self.guesses.unshift(guess);
+                        }
+                        self.hostMessage = self.guestMessage = '';
+                    } else if (game.hostGuessCount < game.guestGuessCount) {
+                        self.hostMessage = 'Waiting...';
+                    } else {
+                        self.guestMessage = 'Waiting...';
                     }
+                    extend(self.game, game);
                 }
             );
         }
