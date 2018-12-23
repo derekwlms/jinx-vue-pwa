@@ -3,18 +3,7 @@ import extend from 'lodash/extend';
 
 export function enterGame(existingGameId, playerId) {
   let gameId = existingGameId || generateGameId();
-  let freshGame = {
-    gameId: gameId,
-    hostPlayerName: '',
-    guestPlayerName: '',
-    winCount: 0,
-    lossCount: 0,
-    hostPlayerWord: '',
-    guestPlayerWord: '',
-    hostGuessCount: 0,
-    guestGuessCount: 0,
-    timestamp: Date.now()      
-  }  
+  let freshGame = initializeGame(gameId);
   let docKey = 'game-' + gameId;
   let gameRef = fb.collection('jinxGames').doc(docKey);
   return gameRef
@@ -52,6 +41,22 @@ export function startPlaying(gameId, gameListener) {
 
 export function updateGame(game) {
   fb.collection('jinxGames').doc('game-' + game.gameId).set(game);
+}
+
+export function initializeGame(gameId) {
+  return {
+    gameId: gameId,
+    hostPlayerName: '',
+    guestPlayerName: '',
+    winCount: 0,
+    lossCount: 0,
+    hostPlayerWord: '',
+    guestPlayerWord: '',
+    hostGuessCount: 0,
+    guestGuessCount: 0,
+    gameMessage: '',
+    timestamp: Date.now()
+  };
 }
 
 function generateGameId() {

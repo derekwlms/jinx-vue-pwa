@@ -5,7 +5,7 @@
                 <div class="input-group">
                     <input type="text" name="guess" class="form-control" placeholder="Enter a word ..." v-model="newWord">
                     <span class="input-group-btn">
-                        <button class="btn btn-primary game-button" type="submit" name="action">Guess</button>
+                        <button :disabled="isWaiting" class="btn btn-primary game-button" type="submit" name="action">Guess</button>
                     </span>
                 </div>
                 <p class="text-danger" v-if="errorText">{{ errorText }}</p>
@@ -17,6 +17,7 @@
 <script>
     export default {
         name: 'Guess',
+        props: ['isWaiting'],
         data() {
             return {
                 errorText: null,
