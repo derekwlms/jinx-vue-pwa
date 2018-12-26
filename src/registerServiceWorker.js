@@ -1,32 +1,51 @@
 /* eslint-disable no-console */
 
 import { register } from 'register-service-worker';
+import Swal from 'sweetalert2/dist/sweetalert2.js'
+
+const notifyAndUpdate = worker => {
+  Swal('Updating to the latest version')
+  .then(function() {
+    worker.postMessage({ action: "skipWaiting"});
+  });
+};
 
 if (process.env.NODE_ENV === 'production') {
+  var reloading;
   register(`${process.env.BASE_URL}service-worker.js`, {
-    ready () {
+    ready() {
       console.log(
         'App is being served from cache by a service worker.\n' +
         'For more details, visit https://goo.gl/AFskqB'
-      )
+      );
     },
-    registered () {
-      console.log('Service worker has been registered.')
+    registered() {
+      console.log('Service worker has been registered.');
     },
-    cached () {
-      console.log('Content has been cached for offline use.')
+    cached() {
+      console.log('Content has been cached for offline use.');
     },
-    updatefound () {
-      console.log('New content is downloading.')
+    updatefound(registration) {
+      console.log('New content is downloading.');
     },
-    updated () {
-      console.log('New content is available; please refresh.')
+    updated(registration) {
+      console.log('New content is available; please refresh.');
+      notifyAndUpdate(registration.waiting);
     },
-    offline () {
-      console.log('No internet connection found. App is running in offline mode.')
+    offline() {
+      console.log('No internet connection found. App is running in offline mode.');
     },
-    error (error) {
-      console.error('Error during service worker registration:', error)
+    error(error) {
+      console.error('Error during service worker registration:', error);
     }
   });
 }
+
+var refreshing;
+navigator.serviceWorker.addEventListener("controllerChange", function() {
+  if (!refreshing) {
+    console.log('Reloading to activate new content.');
+    window.location.reload();
+    refreshing = true;
+  }
+});
