@@ -98,8 +98,8 @@
                 }
                 if (game.hostGuessCount && game.guestGuessCount && 
                     game.hostPlayerWord && 
-                    game.hostPlayerWord.trim().toLowerCase == 
-                    game.guestPlayerWord.trim().toLowerCase) {
+                    game.hostPlayerWord.trim().toLowerCase() == 
+                    game.guestPlayerWord.trim().toLowerCase()) {
                     game.gameMessage = 'You win!';
                     game.winCount++;
                 }
