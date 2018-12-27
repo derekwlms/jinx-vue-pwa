@@ -1,14 +1,17 @@
 import firebase from 'firebase/app';
 import firestore from 'firebase/firestore';  // eslint-disable-line
+import localConfig from './local-config';
+import extend from 'lodash/extend';
   
   var config = {
-    apiKey: "AIzaSyBKWf1q7q8XWlicav1VyKOle-DMDNyfVTg",
-    authDomain: "jinx-vue-pwa.firebaseapp.com",
-    databaseURL: "https://jinx-vue-pwa.firebaseio.com",
+    apiKey: "your-api-key-here",
+    authDomain: "your-domain-here",
+    databaseURL: "your-url-here",
     projectId: "jinx-vue-pwa",
     storageBucket: "",
-    messagingSenderId: "98623874850"
+    messagingSenderId: "your-sender-id-here"
   };
+  extend(config, localConfig);
 
   const firebaseApp = firebase.initializeApp(config);
   firebaseApp.firestore().settings({ timestampsInSnapshots: true });

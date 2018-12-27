@@ -7,7 +7,10 @@
  * See https://goo.gl/2aRDsh and https://goo.gl/S9QRab.
  *
  * Vue cli-plugin-pwa will add the latest "importScripts" lines (on "npm run build").
+ * 
+ * eslint-disable no-undef
  */
+/* eslint-disable no-undef */
 
 // importScripts("https://storage.googleapis.com/workbox-cdn/releases/3.6.3/workbox-sw.js");
 // importScripts(

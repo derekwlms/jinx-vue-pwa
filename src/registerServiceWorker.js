@@ -11,7 +11,6 @@ const notifyAndUpdate = worker => {
 };
 
 if (process.env.NODE_ENV === 'production') {
-  var reloading;
   register(`${process.env.BASE_URL}service-worker.js`, {
     ready() {
       console.log(
@@ -25,7 +24,7 @@ if (process.env.NODE_ENV === 'production') {
     cached() {
       console.log('Content has been cached for offline use.');
     },
-    updatefound(registration) {
+    updatefound() {
       console.log('New content is downloading.');
     },
     updated(registration) {
